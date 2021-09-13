@@ -9,13 +9,13 @@ import h5py
 import SimpleITK as sitk  
 import nibabel as nib
 
-def convert_scan(nods, annotations, scan_id, visualize = False):
+def convert_scan(nods, annotations, scan_id, output_folder, visualize = False):
 
     for id, nod in enumerate(nods):
 
         get_points = True
         pts = None
-        h5_filename = os.path.join(r'D:\Documents\EMTIC\LIDC\Converted_data',  f"case_{scan_id}_nodule_{id+1}.h5")
+        h5_filename = os.path.join(output_folder,  f"case_{scan_id}_nodule_{id+1}.h5")
         print(h5_filename)
         h5f = h5py.File(h5_filename,'w')
 
