@@ -1,6 +1,7 @@
 import os
 import h5py
 import shutil
+import sys
 
 def sort_data(path, min_annotations = 4):
     full_path = os.path.join(path, 'selected')
@@ -19,4 +20,7 @@ def sort_data(path, min_annotations = 4):
                 shutil.move(filename, os.path.join(full_path, name))
 
 if __name__ == "__main__":
-    sort_data()
+    path = sys.argv[1]
+    min_annoations = sys.argv[2]
+
+    sort_data(path, min_annoations)
