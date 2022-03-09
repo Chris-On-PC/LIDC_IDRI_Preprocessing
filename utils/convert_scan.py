@@ -14,8 +14,52 @@ from PIL import Image
 
 from matplotlib import pyplot as plt
 
+def convert_scan_full(scans, output_folder ):
 
-def convert_scan(nods, annotations, scan_id, output_folder, visualize = False, ):
+    for scan in scans:
+
+        nods = scan.cluster_annotations()
+        print(scan.id)
+        ann = pl.query(pl.Annotation).filter(pl.Annotation.scan_id == scan.id)
+        # cs.convert_scan(nods, ann, scan.id, output_folder, visualize=False)
+        nifti_image = os.path.join(output_folder, "images", f"lung_{scan.id}_0000.nii")
+        nifti_labels = os.path.join(output_folder, "labels", f"lung_{scan.id}.nii")
+        
+
+        image = scan.to_volume()
+        label = np.zeros_like(image)
+        transformed_image = np.swapaxes(np.swapaxes(image, 0, 2), 1,2)
+        result_image = sitk.GetImageFromArray(transformed_image)
+        result_image.SetSpacing(( scan.pixel_spacing, scan.pixel_spacing, scan.slice_spacing))
+        result_image = sitk.DICOMOrient(result_image, 'RPI')
+        sitk.WriteImage(result_image, nifti_image)
+
+        for id, nod in enumerate(nods):
+            for idx, item in enumerate(nod):
+                if idx == 0:
+                    annoation_volume = ann.filter(pl.Annotation.id == item.id).first()
+                    mask = annoation_volume.boolean_mask()
+                    label[annoation_volume.bbox()]  = mask
+                else:
+                    continue
+        transformed_label = np.swapaxes(np.swapaxes(label, 0, 2), 1,2).astype(np.int8)            
+        result_label = sitk.GetImageFromArray(transformed_label)
+        result_label.SetSpacing(( scan.slice_spacing ,scan.pixel_spacing, scan.pixel_spacing))
+        result_label = sitk.DICOMOrient(result_label, 'RPI')
+        sitk.WriteImage(result_label, nifti_labels, useCompression=True, compressionLevel=9)
+        
+        print(nifti_labels)
+
+        # writer = sitk.ImageFileWriter()
+        # writer.SetFileName(nifti_image)
+        # writer.Execute(result_image)
+
+        # writer = sitk.ImageFileWriter()
+        # writer.SetFileName(nifti_labels)
+        # writer.Execute(result_label)
+        # result_label.SetSpacing(scan.slice_spacing)
+
+def convert_scan_crop(nods, annotations, scan_id, output_folder, visualize = False, ):
 
     for id, nod in enumerate(nods):
 
